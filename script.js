@@ -186,7 +186,13 @@ function mostrarRutina(dia) {
 
   btnTerminar.addEventListener("click", () => {
     horaFin.value = formatearFecha(new Date());
-  });
+  // Mostrar el botón Exportar al terminar
+  const exportarContainer = document.getElementById("exportar-datos");
+  exportarContainer.classList.remove("oculto");
+  
+  // Asignar el evento si no se asignó previamente
+  document.getElementById("btnExportar").addEventListener("click", exportarDatos);
+});
 }
 
 // Función para formatear fecha/hora (día/mes/año HH:MM)
@@ -236,3 +242,80 @@ if (btnActualizarClima) {
       });
   });
 }
+
+function exportarDatos() {
+  // Recuperar valores de hora de inicio y de finalización
+  const horaInicioInput = document.getElementById("horaInicio").value;
+  const horaFinInput = document.getElementById("horaFin").value;
+  
+  if (!horaInicioInput || !horaFinInput) {
+    alert("Por favor, asegúrate de haber registrado la hora de inicio y de finalización.");
+    return;
+  }
+  
+  // Se asume formato "dd/mm/yyyy hh:mm"
+  const [fechaInicio, tiempoInicio] = horaInicioInput.split(" ");
+  const [fechaFin, tiempoFin] = horaFinInput.split(" ");
+  
+  // Separar día, mes, año y horas/minutos
+  const [dia, mes, anio] = fechaInicio.split("/");
+  const [horaIni, minIni] = tiempoInicio.split(":");
+  const [diaF, mesF, anioF] = fechaFin.split("/");
+  const [horaFin, minFin] = tiempoFin.split(":");
+  
+  // Convertir a objetos Date (recordando que en JS el mes es 0-indexado)
+  const inicioDate = new Date(anio, mes - 1, dia, horaIni, minIni);
+  const finDate = new Date(anioF, mesF - 1, diaF, horaFin, minFin);
+  
+  // Calcular la diferencia en milisegundos y convertir a horas y minutos
+  const diffMs = finDate - inicioDate;
+  if (diffMs < 0) {
+    alert("La hora de finalización es anterior a la de inicio.");
+    return;
+  }
+  const diffHoras = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffMinutos = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+  const duracionStr = `${diffHoras} horas y ${diffMinutos} minutos`;
+  
+  // Extraer datos de clima de los elementos (se asume que tienen textos como "Temperatura: xx °C")
+  const tempText = document.getElementById("temp").textContent;
+  const humedadText = document.getElementById("humedad").textContent;
+  const presionText = document.getElementById("presion").textContent;
+  
+  // Usamos expresiones regulares para obtener los valores numéricos
+  const tempMatch = tempText.match(/([-]?\d+(\.\d+)?)/);
+  const humedadMatch = humedadText.match(/(\d+(\.\d+)?)/);
+  const presionMatch = presionText.match(/(\d+(\.\d+)?)/);
+  
+  const temperatura = tempMatch ? tempMatch[0] : "";
+  const humedad = humedadMatch ? humedadMatch[0] : "";
+  const presion = presionMatch ? presionMatch[0] : "";
+  
+  // Crear un nuevo libro de Excel y definir una hoja de resumen
+  const wb = XLSX.utils.book_new();
+  const ws = {};
+  
+  // Ubicar los datos en las celdas especificadas:
+  // B1: día de hoy (tomado de la parte de fecha de horaInicio)
+  ws["B1"] = { v: fechaInicio };
+  // B2: hora de inicio (solo la parte de la hora)
+  ws["B2"] = { v: tiempoInicio };
+  // B3: hora de finalización (solo la hora)
+  ws["B3"] = { v: tiempoFin };
+  // B4: duración del entrenamiento
+  ws["B4"] = { v: duracionStr };
+  
+  // E2: temperatura, E3: humedad, E4: presión
+  ws["E2"] = { v: temperatura };
+  ws["E3"] = { v: humedad };
+  ws["E4"] = { v: presion };
+  
+  // Definir el rango de la hoja (se amplía para incluir las celdas que usamos)
+  ws["!ref"] = "A1:F10";
+  
+  // Agregar la hoja al libro y generar el archivo Excel
+  XLSX.utils.book_append_sheet(wb, ws, "Resumen");
+  XLSX.writeFile(wb, "DatosEntrenamiento.xlsx");
+}
+
+document.getElementById("btnExportar").addEventListener("click", exportarDatos);
