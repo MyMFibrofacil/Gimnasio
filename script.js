@@ -11,6 +11,23 @@ const botonDia2 = document.getElementById("botonDia2");
 const rutinaContainer = document.getElementById("rutina-container");
 const tbodyRutina = document.getElementById("tbodyRutina");
 
+// NUEVAS REFERENCIAS para la pregunta de si es mujer y el select de fase del ciclo
+const preguntaMujerDiv = document.getElementById("preguntaMujer");
+const esMujerCheckbox = document.getElementById("esMujer");
+const faseCicloSelect = document.getElementById("faseCiclo");
+
+// Cuando el usuario marca/desmarca el checkbox:
+esMujerCheckbox.addEventListener("change", () => {
+  if (esMujerCheckbox.checked) {
+    // Mostrar el <select>
+    faseCicloSelect.classList.remove("oculto");
+  } else {
+    // Ocultarlo de nuevo
+    faseCicloSelect.classList.add("oculto");
+  }
+});
+
+
 // ----------------------------------------------------------------------------------
 // 1. LECTURA DEL ARCHIVO EXCEL
 // ----------------------------------------------------------------------------------
@@ -29,8 +46,6 @@ inputExcel.addEventListener("change", (event) => {
     // Procesar "Dia 1"
     if (sheetNames.includes("Dia 1")) {
       const wsDia1 = workbook.Sheets["Dia 1"];
-      // Saltamos las primeras 2 filas (encabezados hasta la fila 2),
-      // de modo que la fila 3 es dataDia1[0].
       dataDia1 = XLSX.utils.sheet_to_json(wsDia1, {
         header: 1,
         range: 2
@@ -74,13 +89,16 @@ function mostrarRutina(dia) {
   }
 
   // Ocultar la sección para subir archivo y la de selección de día
-document.getElementById("subir-archivo").classList.add("oculto");
-document.getElementById("seleccion-dia").classList.add("oculto");
+  document.getElementById("subir-archivo").classList.add("oculto");
+  document.getElementById("seleccion-dia").classList.add("oculto");
+
+  // Mostrar la sección de la pregunta "¿Eres mujer?"
+  preguntaMujerDiv.classList.remove("oculto");
 
   // Mostramos el contenedor de la rutina
   rutinaContainer.classList.remove("oculto");
 
-  // Limpiamos el contenido previo
+  // Limpiar contenido previo de la tabla
   tbodyRutina.innerHTML = "";
 
   // ------------------------------------------------
@@ -88,7 +106,6 @@ document.getElementById("seleccion-dia").classList.add("oculto");
   // ------------------------------------------------
   const filaInicio = document.createElement("tr");
   const celdaInicio = document.createElement("td");
-  // Ajusta el colspan según cuántas columnas uses
   celdaInicio.colSpan = 6;
   celdaInicio.innerHTML = `
     Hora Inicio:
@@ -102,17 +119,14 @@ document.getElementById("seleccion-dia").classList.add("oculto");
   // CREAR FILAS POR CADA REGISTRO DEL EXCEL
   // ------------------------------------------------
   dataDia.forEach((fila) => {
-    // fila[1] -> Columna B (nombre del ejercicio)
-    // fila.slice(2) -> Columnas C en adelante (repeticiones)
     const nombreEjercicio = fila[1] || "Sin nombre";
-    const repeticiones = fila.slice(3,3+NUM_COLUMNS);
+    const repeticiones = fila.slice(3, 3 + NUM_COLUMNS);
 
-    // Si el Excel tiene menos de 5 columnas, rellenamos con vacío
     while (repeticiones.length < NUM_COLUMNS) {
       repeticiones.push("");
     }
 
-    // 1) Fila: "Ejercicio" + nombre
+    // Fila: "Ejercicio" + nombre
     const trEjercicio = document.createElement("tr");
     const tdEtiquetaEj = document.createElement("td");
     tdEtiquetaEj.textContent = "Ejercicio";
@@ -124,7 +138,7 @@ document.getElementById("seleccion-dia").classList.add("oculto");
     trEjercicio.appendChild(tdNombre);
     tbodyRutina.appendChild(trEjercicio);
 
-    // 2) Fila: "Repeticiones" + valores
+    // Fila: "Repeticiones" + valores
     const trReps = document.createElement("tr");
     const tdEtiquetaReps = document.createElement("td");
     tdEtiquetaReps.textContent = "Repeticiones";
@@ -137,7 +151,7 @@ document.getElementById("seleccion-dia").classList.add("oculto");
     });
     tbodyRutina.appendChild(trReps);
 
-    // 3) Fila: "Peso" + inputs para cada set
+    // Fila: "Peso" + inputs para cada set
     const trPeso = document.createElement("tr");
     const tdEtiquetaPeso = document.createElement("td");
     tdEtiquetaPeso.textContent = "Peso";
@@ -153,7 +167,7 @@ document.getElementById("seleccion-dia").classList.add("oculto");
     });
     tbodyRutina.appendChild(trPeso);
 
-    // Fila vacía opcional para separar ejercicios
+    // Fila vacía para separar ejercicios
     const trVacio = document.createElement("tr");
     const tdVacio = document.createElement("td");
     tdVacio.colSpan = repeticiones.length + 1;
@@ -176,9 +190,7 @@ document.getElementById("seleccion-dia").classList.add("oculto");
   filaFinal.appendChild(celdaFinal);
   tbodyRutina.appendChild(filaFinal);
 
-  // ------------------------------------------------
   // Asignar eventos a los botones "Arrancar" / "Terminar"
-  // ------------------------------------------------
   const btnIniciar = document.getElementById("btnIniciar");
   const btnTerminar = document.getElementById("btnTerminar");
   const horaInicio = document.getElementById("horaInicio");
@@ -190,16 +202,14 @@ document.getElementById("seleccion-dia").classList.add("oculto");
 
   btnTerminar.addEventListener("click", () => {
     horaFin.value = formatearFecha(new Date());
-  // Mostrar el botón Exportar al terminar
-  const exportarContainer = document.getElementById("exportar-datos");
-  exportarContainer.classList.remove("oculto");
-  
-  // Asignar el evento si no se asignó previamente
-  document.getElementById("btnExportar").addEventListener("click", exportarDatosExcelJS);
-});
+    const exportarContainer = document.getElementById("exportar-datos");
+    exportarContainer.classList.remove("oculto");
+
+    document.getElementById("btnExportar").addEventListener("click", exportarDatosExcelJS);
+  });
 }
 
-// Función para formatear fecha/hora (día/mes/año HH:MM)
+// Función para formatear fecha/hora (dd/mm/yyyy HH:MM)
 function formatearFecha(fecha) {
   const dia = String(fecha.getDate()).padStart(2, "0");
   const mes = String(fecha.getMonth() + 1).padStart(2, "0");
@@ -219,7 +229,6 @@ const presionP = document.getElementById("presion");
 
 if (btnActualizarClima) {
   btnActualizarClima.addEventListener("click", () => {
-    // Pon tu API key de OpenWeatherMap
     const apiKey = "4924704172a54640e12d553024517ad4";
     const ciudad = "Buenos Aires,AR";
     const url = `https://api.openweathermap.org/data/2.5/weather?q=${ciudad}&appid=${apiKey}&units=metric&lang=es`;
@@ -247,11 +256,11 @@ if (btnActualizarClima) {
   });
 }
 
-/*****************************************************************************
- *  FUNCIÓN PRINCIPAL PARA EXPORTAR DATOS A EXCEL
- *****************************************************************************/
+// ----------------------------------------------------------------------------------
+// 4. EXPORTAR DATOS A EXCEL CON EXCELJS
+// ----------------------------------------------------------------------------------
 async function exportarDatosExcelJS() {
-  // 1) OBTENER DATOS DE HORA
+  // 1) Obtener horas de inicio y fin
   const horaInicioInput = document.getElementById("horaInicio").value;
   const horaFinInput = document.getElementById("horaFin").value;
   if (!horaInicioInput || !horaFinInput) {
@@ -259,26 +268,21 @@ async function exportarDatosExcelJS() {
     return;
   }
 
-  // Formato "dd/mm/yyyy hh:mm(:ss)"
   const [fechaInicio, horaInicioPart] = horaInicioInput.split(" ");
   const [fechaFin, horaFinPart] = horaFinInput.split(" ");
-  
-  // Si solo se incluyen horas y minutos, agregamos segundos "00"
   const partesInicio = horaInicioPart.split(":");
   if (partesInicio.length === 2) {
     partesInicio.push("00");
   }
   const [hI, mI, sI] = partesInicio;
-  
   const partesFin = horaFinPart.split(":");
   if (partesFin.length === 2) {
     partesFin.push("00");
   }
   const [hF, mF, sF] = partesFin;
-  
   const [diaI, mesI, anioI] = fechaInicio.split("/");
   const [diaF, mesF, anioF] = fechaFin.split("/");
-  
+
   const dateInicio = new Date(anioI, mesI - 1, diaI, hI, mI, sI);
   const dateFin = new Date(anioF, mesF - 1, diaF, hF, mF, sF);
   const diffMs = dateFin - dateInicio;
@@ -286,10 +290,9 @@ async function exportarDatosExcelJS() {
     alert("La hora de finalización es anterior a la de inicio.");
     return;
   }
-  // En Excel se guarda el tiempo como fracción de un día
   const timeFraction = diffMs / (24 * 3600 * 1000);
 
-  // 2) DATOS DEL CLIMA
+  // 2) Obtener datos del clima
   const tempText = document.getElementById("temp").textContent;
   const humedadText = document.getElementById("humedad").textContent;
   const presionText = document.getElementById("presion").textContent;
@@ -302,7 +305,7 @@ async function exportarDatosExcelJS() {
   const humedad = humedadMatch ? humedadMatch[0] : "";
   const presion = presionMatch ? presionMatch[0] : "";
 
-  // 3) EXTRAER LA TABLA DE ENTRENAMIENTO (omitiendo la 1ª y la última fila)
+  // 3) Extraer datos de la tabla (excepto la primera y última fila)
   const filasTabla = document.querySelectorAll("#tablaRutina tr");
   const datosEntrenamiento = [];
   for (let i = 1; i < filasTabla.length - 1; i++) {
@@ -313,35 +316,30 @@ async function exportarDatosExcelJS() {
       if (input) {
         fila.push(input.value);
       } else {
-        // Incluso si está vacío, guardamos el texto (puede ser "")
         fila.push(celda.textContent.trim());
       }
     });
-    // No descartamos filas vacías para conservar la fila separadora
     datosEntrenamiento.push(fila);
   }
 
-  // 4) CONSTRUIR LA MATRIZ PARA LA PARTE SUPERIOR
-  // Se crean las filas con la información del día, horas y clima.
+  // 4) Construir la matriz para la parte superior del Excel
   const sheetData = [
     ["Día:", fechaInicio, null, null, "Temperatura:", temperatura],
     ["Hora Inicio:", horaInicioInput.split(" ")[1], null, null, "Humedad:", humedad],
     ["Hora Final:", horaFinInput.split(" ")[1], null, null, "Presión:", presion],
-    // Se asigna el valor numérico para "Tiempo Total"
     ["Tiempo Total:", timeFraction],
     [],
-    ["Entrenamiento:"],  // Esta fila se combinará (A6:F6)
+    ["Entrenamiento:"],
     []
   ];
 
   // Agregar la tabla de entrenamiento a partir de la fila 8
   sheetData.push(...datosEntrenamiento);
 
-  // 5) CREAR LIBRO Y HOJA CON EXCELJS
+  // 5) Crear libro y hoja con ExcelJS
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet("Resumen");
 
-  // Insertar cada fila en la hoja
   sheetData.forEach((rowData, idx) => {
     const row = worksheet.getRow(idx + 1);
     rowData.forEach((value, colIndex) => {
@@ -349,80 +347,54 @@ async function exportarDatosExcelJS() {
     });
   });
 
-  // 6) APLICAR FORMATO ESPECÍFICO
-
-  // 6a) Combinar la celda A6:F6 (fila 6, columnas 1 a 6)
+  // 6) Aplicar formato: combinar celdas, bordes, etc.
   worksheet.mergeCells("A6:F6");
   const cellA6 = worksheet.getCell("A6");
   cellA6.alignment = { horizontal: "center", vertical: "middle" };
   cellA6.font = { bold: true };
-
-  // 6b) Formatear "Tiempo Total" (celda B4) para que se muestre como "hh:mm:ss"
   worksheet.getCell("B4").numFmt = "hh:mm:ss";
 
-  // --- Helpers para aplicar bordes ---
   function applyAllThinBorders(ws, startRow, startCol, endRow, endCol) {
     for (let r = startRow; r <= endRow; r++) {
       for (let c = startCol; c <= endCol; c++) {
         const cell = ws.getCell(r, c);
         cell.border = {
-          top:    { style: "thin", color: { argb: "FF000000" } },
-          left:   { style: "thin", color: { argb: "FF000000" } },
+          top: { style: "thin", color: { argb: "FF000000" } },
+          left: { style: "thin", color: { argb: "FF000000" } },
           bottom: { style: "thin", color: { argb: "FF000000" } },
-          right:  { style: "thin", color: { argb: "FF000000" } }
+          right: { style: "thin", color: { argb: "FF000000" } }
         };
       }
     }
   }
 
   function applyThickOutside(ws, startRow, startCol, endRow, endCol) {
-    // Borde superior
     for (let c = startCol; c <= endCol; c++) {
       const cell = ws.getCell(startRow, c);
-      cell.border = {
-        ...cell.border,
-        top: { style: "medium", color: { argb: "FF000000" } }
-      };
+      cell.border = { ...cell.border, top: { style: "medium", color: { argb: "FF000000" } } };
     }
-    // Borde inferior
     for (let c = startCol; c <= endCol; c++) {
       const cell = ws.getCell(endRow, c);
-      cell.border = {
-        ...cell.border,
-        bottom: { style: "medium", color: { argb: "FF000000" } }
-      };
+      cell.border = { ...cell.border, bottom: { style: "medium", color: { argb: "FF000000" } } };
     }
-    // Borde izquierdo
     for (let r = startRow; r <= endRow; r++) {
       const cell = ws.getCell(r, startCol);
-      cell.border = {
-        ...cell.border,
-        left: { style: "medium", color: { argb: "FF000000" } }
-      };
+      cell.border = { ...cell.border, left: { style: "medium", color: { argb: "FF000000" } } };
     }
-    // Borde derecho
     for (let r = startRow; r <= endRow; r++) {
       const cell = ws.getCell(r, endCol);
-      cell.border = {
-        ...cell.border,
-        right: { style: "medium", color: { argb: "FF000000" } }
-      };
+      cell.border = { ...cell.border, right: { style: "medium", color: { argb: "FF000000" } } };
     }
   }
 
-  // Bordes en la sección A1:B4 (filas 1 a 4, columnas 1 a 2)
   applyAllThinBorders(worksheet, 1, 1, 4, 2);
   applyThickOutside(worksheet, 1, 1, 4, 2);
-
-  // Bordes en la sección E1:F3 (filas 1 a 3, columnas 5 a 6)
   applyAllThinBorders(worksheet, 1, 5, 3, 6);
   applyThickOutside(worksheet, 1, 5, 3, 6);
 
-  // 6c) Aplicar bordes para cada bloque de ejercicios (cada bloque = 3 filas con datos + 1 fila vacía)
-  // Los datos de entrenamiento comienzan en la fila 8 (sheet row 8)
   for (let i = 0; i < datosEntrenamiento.length; i += 4) {
-    const blockTop = 8 + i;          // Fila "Ejercicio"
-    const blockBottom = blockTop + 2;  // Fila "Peso"
+    const blockTop = 8 + i;
+    const blockBottom = blockTop + 2;
     let maxCols = 1;
     for (let r = i; r < i + 3 && r < datosEntrenamiento.length; r++) {
       if (datosEntrenamiento[r].length > maxCols) {
@@ -431,35 +403,20 @@ async function exportarDatosExcelJS() {
     }
     applyAllThinBorders(worksheet, blockTop, 1, blockBottom, maxCols);
     applyThickOutside(worksheet, blockTop, 1, blockBottom, maxCols);
-    // La fila i+3 queda sin bordes, actuando como separación
   }
 
-  // 7) ASIGNAR ANCHO FIJO A TODAS LAS COLUMNAS (12.3)
   worksheet.columns.forEach((column) => {
     column.width = 12.3;
   });
 
-  // 8) DESCARGAR EL ARCHIVO
   const buffer = await workbook.xlsx.writeBuffer();
   saveAs(new Blob([buffer]), "DatosEntrenamiento.xlsx");
 }
 
-
-
-/*****************************************************************************
- *  MOSTRAR BOTÓN EXPORTAR AL PRESIONAR "TERMINAR" Y ASIGNAR EVENTO
- *****************************************************************************/
-// Dentro de tu función donde manejas el evento del botón "Terminar":
-// (asegúrate de que esté en la misma parte donde se define btnTerminar)
-
+// Evento para mostrar el botón Exportar al presionar "Terminar"
 btnTerminar.addEventListener("click", () => {
   horaFin.value = formatearFecha(new Date());
-
-  // Mostrar botón "Exportar Datos"
   const exportarContainer = document.getElementById("exportar-datos");
   exportarContainer.classList.remove("oculto");
-
-  // Asignar el evento para exportar
-  const btnExportar = document.getElementById("btnExportar");
-  btnExportar.addEventListener("click", exportarDatosExcelJS);
+  document.getElementById("btnExportar").addEventListener("click", exportarDatosExcelJS);
 });

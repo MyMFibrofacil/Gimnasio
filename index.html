@@ -3,33 +3,24 @@
 <head>
   <meta charset="UTF-8" />
   <title>Mi Rutina de Gimnasio</title>
-
-  <!-- Para ser responsivo en móviles -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- Hoja de estilos -->
   <link rel="stylesheet" href="styles.css" />
-
+  
   <!-- Librería SheetJS para leer Excel en el navegador -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
   <!-- ExcelJS y FileSaver.js para generar y descargar el Excel -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-
 </head>
 <body>
   <h1>Mi Rutina de Gimnasio</h1>
 
   <!-- 1. Subir archivo Excel -->
-    <div id="subir-archivo">
+  <div id="subir-archivo">
     <h2>1. Subir Archivo Excel</h2>
-    <!-- Input para seleccionar el archivo -->
-          <!-- Botón "falso" que dispara el input de archivo -->
-          <label for="inputExcel" class="boton-gris">
-            Seleccionar Archivo
-          </label>
-
+    <!-- Botón "falso" que dispara el input de archivo -->
+    <label for="inputExcel" class="boton-gris">Seleccionar Archivo</label>
     <input 
       type="file" 
       id="inputExcel" 
@@ -45,12 +36,26 @@
     <button id="botonDia2" class="boton-gris">Día 2</button>
   </div>
 
+  <!-- NUEVO BLOQUE: Pregunta "¿Eres mujer?" y desplegable de fase del ciclo -->
+  <div id="preguntaMujer" class="oculto" style="text-align: center;">
+    <label for="esMujer">¿Eres mujer?</label>
+    <input type="checkbox" id="esMujer" />
+    <br />
+    <select id="faseCiclo" class="oculto boton-gris">
+      <option value="">Selecciona una opción</option>
+      <option value="menstruacion">Menstruación (1 - 7D)</option>
+      <option value="proliferativa">Proliferativa (8 - 12D)</option>
+      <option value="ovulacion">Ovulación (13 - 15D)</option>
+      <option value="secretora">Secretora (16 - 28D)</option>
+    </select>
+  </div>
+  
+  <!-- FIN BLOQUE NUEVO -->
+
   <!-- 3. Contenedor de la rutina (oculto al inicio) -->
   <div id="rutina-container" class="oculto">
     <table id="tablaRutina">
-      <tbody id="tbodyRutina">
-        <!-- Se generarán dinámicamente con JS -->
-      </tbody>
+      <tbody id="tbodyRutina"></tbody>
     </table>
 
     <!-- Sección de clima -->
@@ -63,10 +68,10 @@
     </div>
   </div>
 
-<!-- Botón Exportar Datos, inicialmente oculto -->
-<div id="exportar-datos" class="oculto">
-  <button id="btnExportar" class="boton-gris">Exportar Datos</button>
-</div>
+  <!-- Botón Exportar Datos, inicialmente oculto -->
+  <div id="exportar-datos" class="oculto">
+    <button id="btnExportar" class="boton-gris">Exportar Datos</button>
+  </div>
 
   <!-- Script principal -->
   <script src="script.js"></script>

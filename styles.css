@@ -29,7 +29,7 @@ h1, h2, h3 {
 
 /* Ocultar elementos con la clase "oculto" */
 .oculto {
-  display: none;
+  display: none !important;
 }
 
 #tablaRutina {
