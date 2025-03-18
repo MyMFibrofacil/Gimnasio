@@ -1,0 +1,99 @@
+/* Reinicio básico de márgenes y padding */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Fondo negro, texto blanco */
+body {
+  background-color: #000;
+  color: #fff;
+  font-family: Arial, sans-serif;
+  padding: 10px;
+}
+
+/* Títulos centrados */
+h1, h2, h3 {
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+/* Div contenedores con margen inferior */
+#subir-archivo,
+#seleccion-dia,
+#rutina-container {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+/* Ocultar elementos con la clase "oculto" */
+.oculto {
+  display: none;
+}
+
+#tablaRutina {
+  border-collapse: collapse;
+  table-layout: auto; /* El navegador ajusta el ancho según el contenido */
+  margin: 0 auto;     /* Centrar la tabla en la página, si gustas */
+}
+
+#tablaRutina th,
+#tablaRutina td {
+  border: 1px solid #555;
+  padding: 4px;
+  white-space: nowrap; /* Evita que el texto salte de línea */
+}
+
+/* Inputs de la tabla (para el peso) */
+#tablaRutina input {
+  width: 50px;
+  text-align: center;
+}
+
+/* Sección de clima centrada */
+.clima {
+  margin-top: 20px;
+}
+
+/* Botones estilo gris */
+.boton-gris {
+  display: block;           /* para ocupar todo el ancho posible */
+  width: 100%;
+  background-color: #444;   /* gris oscuro */
+  color: #fff;
+  padding: 12px;
+  margin: 8px auto;         /* separación vertical y centrado */
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  text-align: center;
+  cursor: pointer;
+  max-width: 400px;         /* ancho máximo en pantallas grandes */
+}
+
+/* Efecto hover */
+.boton-gris:hover {
+  background-color: #555;
+}
+
+/* Ajustes para pantallas pequeñas (móviles) */
+@media (max-width: 600px) {
+  body {
+    padding: 5px;
+  }
+
+  h1, h2, h3 {
+    font-size: 1.2rem;
+  }
+
+  #tablaRutina td,
+  #tablaRutina th {
+    font-size: 0.9rem;
+    padding: 6px;
+  }
+
+  .boton-gris {
+    font-size: 1rem;
+  }
+}

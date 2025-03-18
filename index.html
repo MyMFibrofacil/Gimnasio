@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Mi Rutina de Gimnasio</title>
+
+  <!-- Para ser responsivo en móviles -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Hoja de estilos -->
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- Librería SheetJS para leer Excel en el navegador -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+  <h1>Mi Rutina de Gimnasio</h1>
+
+  <!-- 1. Subir archivo Excel -->
+
+  
+  <div id="subir-archivo">
+    <h2>1. Subir Archivo Excel</h2>
+    <!-- Input para seleccionar el archivo -->
+          <!-- Botón "falso" que dispara el input de archivo -->
+          <label for="inputExcel" class="boton-gris">
+            Seleccionar Archivo
+          </label>
+
+    <input 
+      type="file" 
+      id="inputExcel" 
+      accept=".xlsx,.xls" 
+      class="boton-gris"
+      style="display: none;" />
+  </div>
+
+  <!-- 2. Seleccionar día (oculto al inicio) -->
+  <div id="seleccion-dia" class="oculto">
+    <h2>2. Seleccione el Día de Entrenamiento</h2>
+    <button id="botonDia1" class="boton-gris">Día 1</button>
+    <button id="botonDia2" class="boton-gris">Día 2</button>
+  </div>
+
+  <!-- 3. Contenedor de la rutina (oculto al inicio) -->
+  <div id="rutina-container" class="oculto">
+    <table id="tablaRutina">
+      <tbody id="tbodyRutina">
+        <!-- Se generarán dinámicamente con JS -->
+      </tbody>
+    </table>
+
+    <!-- Sección de clima -->
+    <div class="clima">
+      <h3>Clima Actual</h3>
+      <p id="temp"></p>
+      <p id="humedad"></p>
+      <p id="presion"></p>
+      <button id="btnActualizarClima" class="boton-gris">Actualizar Clima</button>
+    </div>
+  </div>
+
+  <!-- Script principal -->
+  <script src="script.js"></script>
+</body>
+</html>
