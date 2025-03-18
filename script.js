@@ -210,7 +210,7 @@ const presionP = document.getElementById("presion");
 if (btnActualizarClima) {
   btnActualizarClima.addEventListener("click", () => {
     // Pon tu API key de OpenWeatherMap
-    const apiKey = "TU_API_KEY_AQUI";
+    const apiKey = "32cf881b34733731ca3c19f794e71648";
     const ciudad = "Buenos Aires,AR";
     const url = `https://api.openweathermap.org/data/2.5/weather?q=${ciudad}&appid=${apiKey}&units=metric&lang=es`;
 
