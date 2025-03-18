@@ -157,12 +157,18 @@ function mostrarRutina(dia) {
     tdEtiquetaPeso.textContent = "Peso";
     trPeso.appendChild(tdEtiquetaPeso);
 
-    repeticiones.forEach(() => {
+    // repeticiones es un array con 5 elementos (por ej. 4 con números y 1 vacío)
+    repeticiones.forEach((rep) => {
       const tdInput = document.createElement("td");
-      const inputP = document.createElement("input");
-      inputP.type = "number";
-      inputP.placeholder = "kg";
-      tdInput.appendChild(inputP);
+
+      // SOLO si rep no está vacío, insertamos el <input>
+      if (rep !== "") {
+        const inputP = document.createElement("input");
+        inputP.type = "number";
+        inputP.placeholder = "kg";
+        tdInput.appendChild(inputP);
+      }
+
       trPeso.appendChild(tdInput);
     });
     tbodyRutina.appendChild(trPeso);
@@ -260,7 +266,7 @@ if (btnActualizarClima) {
 // 4. EXPORTAR DATOS A EXCEL CON EXCELJS
 // ----------------------------------------------------------------------------------
 async function exportarDatosExcelJS() {
-  // 1) Obtener horas de inicio y fin
+  // 1) OBTENER DATOS DE HORA
   const horaInicioInput = document.getElementById("horaInicio").value;
   const horaFinInput = document.getElementById("horaFin").value;
   if (!horaInicioInput || !horaFinInput) {
@@ -271,14 +277,10 @@ async function exportarDatosExcelJS() {
   const [fechaInicio, horaInicioPart] = horaInicioInput.split(" ");
   const [fechaFin, horaFinPart] = horaFinInput.split(" ");
   const partesInicio = horaInicioPart.split(":");
-  if (partesInicio.length === 2) {
-    partesInicio.push("00");
-  }
+  if (partesInicio.length === 2) partesInicio.push("00");
   const [hI, mI, sI] = partesInicio;
   const partesFin = horaFinPart.split(":");
-  if (partesFin.length === 2) {
-    partesFin.push("00");
-  }
+  if (partesFin.length === 2) partesFin.push("00");
   const [hF, mF, sF] = partesFin;
   const [diaI, mesI, anioI] = fechaInicio.split("/");
   const [diaF, mesF, anioF] = fechaFin.split("/");
@@ -290,9 +292,10 @@ async function exportarDatosExcelJS() {
     alert("La hora de finalización es anterior a la de inicio.");
     return;
   }
+  // En Excel se guarda el tiempo como fracción de un día
   const timeFraction = diffMs / (24 * 3600 * 1000);
 
-  // 2) Obtener datos del clima
+  // 2) OBTENER DATOS DEL CLIMA
   const tempText = document.getElementById("temp").textContent;
   const humedadText = document.getElementById("humedad").textContent;
   const presionText = document.getElementById("presion").textContent;
@@ -305,7 +308,10 @@ async function exportarDatosExcelJS() {
   const humedad = humedadMatch ? humedadMatch[0] : "";
   const presion = presionMatch ? presionMatch[0] : "";
 
-  // 3) Extraer datos de la tabla (excepto la primera y última fila)
+  // 3) OBTENER EL VALOR SELECCIONADO EN EL SELECT "faseCiclo"
+  const cicloSeleccionado = document.getElementById("faseCiclo").value || "";
+
+  // 4) EXTRAER LA TABLA DE ENTRENAMIENTO (omitiendo la 1ª y última fila)
   const filasTabla = document.querySelectorAll("#tablaRutina tr");
   const datosEntrenamiento = [];
   for (let i = 1; i < filasTabla.length - 1; i++) {
@@ -322,24 +328,26 @@ async function exportarDatosExcelJS() {
     datosEntrenamiento.push(fila);
   }
 
-  // 4) Construir la matriz para la parte superior del Excel
+  // 5) CONSTRUIR LA MATRIZ PARA LA PARTE SUPERIOR DEL EXCEL
+  // Observa la fila 4: ["Tiempo Total:", timeFraction, null, null, "Ciclo:", cicloSeleccionado]
   const sheetData = [
     ["Día:", fechaInicio, null, null, "Temperatura:", temperatura],
-    ["Hora Inicio:", horaInicioInput.split(" ")[1], null, null, "Humedad:", humedad],
-    ["Hora Final:", horaFinInput.split(" ")[1], null, null, "Presión:", presion],
-    ["Tiempo Total:", timeFraction],
+    ["Hora Inicio:", horaInicioPart, null, null, "Humedad:", humedad],
+    ["Hora Final:", horaFinPart, null, null, "Presión:", presion],
+    ["Tiempo Total:", timeFraction, null, null, "Ciclo:", cicloSeleccionado],
     [],
-    ["Entrenamiento:"],
+    ["Entrenamiento:"],  // Fila 6 combinada A6:F6
     []
   ];
 
-  // Agregar la tabla de entrenamiento a partir de la fila 8
+  // Agregamos la tabla de entrenamiento a partir de la fila 8
   sheetData.push(...datosEntrenamiento);
 
-  // 5) Crear libro y hoja con ExcelJS
+  // 6) CREAR LIBRO Y HOJA CON EXCELJS
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet("Resumen");
 
+  // Insertar cada fila en la hoja
   sheetData.forEach((rowData, idx) => {
     const row = worksheet.getRow(idx + 1);
     rowData.forEach((value, colIndex) => {
@@ -347,54 +355,83 @@ async function exportarDatosExcelJS() {
     });
   });
 
-  // 6) Aplicar formato: combinar celdas, bordes, etc.
+  // 7) APLICAR FORMATO
+
+  // a) Combinar la celda A6:F6 (fila 6) para "Entrenamiento:"
   worksheet.mergeCells("A6:F6");
   const cellA6 = worksheet.getCell("A6");
   cellA6.alignment = { horizontal: "center", vertical: "middle" };
   cellA6.font = { bold: true };
+
+  // b) Formato "hh:mm:ss" para la celda B4 (tiempo total)
   worksheet.getCell("B4").numFmt = "hh:mm:ss";
 
+  // c) Funciones para aplicar bordes
   function applyAllThinBorders(ws, startRow, startCol, endRow, endCol) {
     for (let r = startRow; r <= endRow; r++) {
       for (let c = startCol; c <= endCol; c++) {
         const cell = ws.getCell(r, c);
         cell.border = {
-          top: { style: "thin", color: { argb: "FF000000" } },
-          left: { style: "thin", color: { argb: "FF000000" } },
+          top:    { style: "thin", color: { argb: "FF000000" } },
+          left:   { style: "thin", color: { argb: "FF000000" } },
           bottom: { style: "thin", color: { argb: "FF000000" } },
-          right: { style: "thin", color: { argb: "FF000000" } }
+          right:  { style: "thin", color: { argb: "FF000000" } }
         };
       }
     }
   }
 
   function applyThickOutside(ws, startRow, startCol, endRow, endCol) {
+    // Borde superior
     for (let c = startCol; c <= endCol; c++) {
       const cell = ws.getCell(startRow, c);
-      cell.border = { ...cell.border, top: { style: "medium", color: { argb: "FF000000" } } };
+      cell.border = {
+        ...cell.border,
+        top: { style: "medium", color: { argb: "FF000000" } }
+      };
     }
+    // Borde inferior
     for (let c = startCol; c <= endCol; c++) {
       const cell = ws.getCell(endRow, c);
-      cell.border = { ...cell.border, bottom: { style: "medium", color: { argb: "FF000000" } } };
+      cell.border = {
+        ...cell.border,
+        bottom: { style: "medium", color: { argb: "FF000000" } }
+      };
     }
+    // Borde izquierdo
     for (let r = startRow; r <= endRow; r++) {
       const cell = ws.getCell(r, startCol);
-      cell.border = { ...cell.border, left: { style: "medium", color: { argb: "FF000000" } } };
+      cell.border = {
+        ...cell.border,
+        left: { style: "medium", color: { argb: "FF000000" } }
+      };
     }
+    // Borde derecho
     for (let r = startRow; r <= endRow; r++) {
       const cell = ws.getCell(r, endCol);
-      cell.border = { ...cell.border, right: { style: "medium", color: { argb: "FF000000" } } };
+      cell.border = {
+        ...cell.border,
+        right: { style: "medium", color: { argb: "FF000000" } }
+      };
     }
   }
 
+  // d) Bordes para A1:B4
   applyAllThinBorders(worksheet, 1, 1, 4, 2);
   applyThickOutside(worksheet, 1, 1, 4, 2);
+
+  // e) Bordes para E1:F3
   applyAllThinBorders(worksheet, 1, 5, 3, 6);
   applyThickOutside(worksheet, 1, 5, 3, 6);
 
+  // f) Bordes para E4:F4 (Ciclo)
+  applyAllThinBorders(worksheet, 4, 5, 4, 6);
+  applyThickOutside(worksheet, 4, 5, 4, 6);
+
+  // g) Bordes en la sección de entrenamiento
   for (let i = 0; i < datosEntrenamiento.length; i += 4) {
-    const blockTop = 8 + i;
-    const blockBottom = blockTop + 2;
+    const blockTop = 8 + i;  // Fila "Ejercicio"
+    const blockBottom = blockTop + 2; // Fila "Peso"
     let maxCols = 1;
     for (let r = i; r < i + 3 && r < datosEntrenamiento.length; r++) {
       if (datosEntrenamiento[r].length > maxCols) {
@@ -403,15 +440,19 @@ async function exportarDatosExcelJS() {
     }
     applyAllThinBorders(worksheet, blockTop, 1, blockBottom, maxCols);
     applyThickOutside(worksheet, blockTop, 1, blockBottom, maxCols);
+    // La fila i+3 queda sin bordes (separadora)
   }
 
+  // h) Ancho de columnas
   worksheet.columns.forEach((column) => {
     column.width = 12.3;
   });
 
+  // 8) GENERAR Y DESCARGAR EL ARCHIVO
   const buffer = await workbook.xlsx.writeBuffer();
   saveAs(new Blob([buffer]), "DatosEntrenamiento.xlsx");
 }
+
 
 // Evento para mostrar el botón Exportar al presionar "Terminar"
 btnTerminar.addEventListener("click", () => {
