@@ -78,5 +78,381 @@
 
   <!-- Script principal -->
   <script src="script.js"></script>
+
+  <!-- TEMPORIZADOR NUEVO -->
+
+  <!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Temporizador Tabata</title>
+  <style>
+    /* Estilos básicos */
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #2c2c2c; /* Gris oscuro */
+      color: #fff;
+      font-family: Arial, sans-serif;
+    }
+
+    h1 {
+      text-align: center;
+      margin: 20px 0;
+    }
+
+    .boton-gris {
+      background-color: #444;
+      color: #fff;
+      padding: 12px;
+      margin: 8px auto;
+      border: none;
+      border-radius: 4px;
+      font-size: 1rem;
+      cursor: pointer;
+      max-width: 200px;
+      display: block;
+      text-align: center;
+    }
+    .boton-gris:hover {
+      background-color: #555;
+    }
+
+    .oculto {
+      display: none !important;
+    }
+
+    /* Contenedor general */
+    #temporizador-container {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    /* Sección con el reloj y los inputs */
+    #timerSection {
+      margin: 0 auto;
+      max-width: 450px;
+    }
+
+    /* Inputs y labels */
+    .inputs-container {
+      background-color: #3a3a3a;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px auto;
+      display: flex;
+      flex-direction: column; /* Apilamos filas verticalmente */
+      gap: 15px;
+      align-items: center;
+    }
+    .input-row {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      flex-wrap: wrap; /* Para que se acomoden si la pantalla es pequeña */
+    }
+    .input-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    .input-block label {
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    .input-block input {
+      padding: 6px;
+      border: none;
+      border-radius: 4px;
+      width: 120px;
+      text-align: center;
+    }
+
+    /* Reloj circular */
+    .circular-timer {
+      position: relative;
+      width: 240px;
+      height: 240px;
+      margin: 20px auto;
+    }
+
+    /* SVG sin rotación (el progreso empieza a la derecha) */
+    .circular-timer svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Círculo de fondo */
+    .background-circle {
+      fill: none;
+      stroke: #555;
+      stroke-width: 15;
+    }
+
+    /* Círculo de progreso */
+    .progress-circle {
+      fill: none;
+      stroke-width: 15;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 0.25s linear;
+    }
+
+    /* Texto centrado en el círculo */
+    .timer-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2rem;
+      font-weight: bold;
+    }
+
+    /* Botones de control (Iniciar, Pausar, Detener) */
+    .buttons {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin: 20px 0;
+    }
+    .buttons button {
+      background-color: #444;
+      color: #fff;
+      padding: 12px 20px;
+      margin: 0;
+      border: none;
+      border-radius: 4px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    .buttons button:hover {
+      background-color: #555;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Botón que muestra/oculta el temporizador -->
+  <div id="temporizador-container">
+    <button id="btnTemporizador" class="boton-gris">Temporizador</button>
+    
+    <!-- Sección con inputs, reloj y controles (inicialmente oculta) -->
+    <div id="timerSection" class="oculto">
+      <!-- Inputs para series, repeticiones y tiempos -->
+      <div class="inputs-container">
+        <!-- Primera fila: Series y Repeticiones -->
+        <div class="input-row">
+          <div class="input-block">
+            <label for="series">Series</label>
+            <input type="number" id="series" min="1" value="3">
+          </div>
+          <div class="input-block">
+            <label for="repeticiones">Repeticiones</label>
+            <input type="number" id="repeticiones" min="1" value="4">
+          </div>
+        </div>
+        <!-- Segunda fila: Preparación, Entrenamiento, Descanso -->
+        <div class="input-row">
+          <div class="input-block">
+            <label for="tiempoPreparacion">Preparación</label>
+            <input type="number" id="tiempoPreparacion" min="1" value="10">
+          </div>
+          <div class="input-block">
+            <label for="tiempoEntrenamiento">Entrenamiento</label>
+            <input type="number" id="tiempoEntrenamiento" min="1" value="20">
+          </div>
+          <div class="input-block">
+            <label for="tiempoDescanso">Descanso</label>
+            <input type="number" id="tiempoDescanso" min="1" value="10">
+          </div>
+        </div>
+      </div>
+
+      <!-- Reloj circular -->
+      <div class="circular-timer">
+        <svg viewBox="0 0 240 240">
+          <circle
+            class="background-circle"
+            cx="120"
+            cy="120"
+            r="100"
+          ></circle>
+          <circle
+            class="progress-circle"
+            cx="120"
+            cy="120"
+            r="100"
+            stroke="#FFD700"        <!-- color inicial (dorado p/ "PREPARAR") -->
+            stroke-dasharray="628"  <!-- aprox 2*PI*100 -->
+            stroke-dashoffset="628"
+          ></circle>
+        </svg>
+        <div class="timer-text" id="timer-text">00:00</div>
+      </div>
+
+      <!-- Botones de control -->
+      <div class="buttons">
+        <button id="start-btn">Iniciar</button>
+        <button id="pause-btn">Pausar</button>
+        <button id="stop-btn">Detener</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Botón para mostrar/ocultar la sección de temporizador
+    const btnTemporizador = document.getElementById("btnTemporizador");
+    const timerSection = document.getElementById("timerSection");
+
+    // Inputs
+    const seriesInput = document.getElementById("series");
+    const repeticionesInput = document.getElementById("repeticiones");
+    const tiempoPreparacionInput = document.getElementById("tiempoPreparacion");
+    const tiempoEntrenamientoInput = document.getElementById("tiempoEntrenamiento");
+    const tiempoDescansoInput = document.getElementById("tiempoDescanso");
+
+    // Elementos del círculo
+    const progressCircle = document.querySelector(".progress-circle");
+    const timerText = document.getElementById("timer-text");
+    const circumference = 2 * Math.PI * 100; // 2πr => r=100
+    progressCircle.style.strokeDasharray = circumference;
+    progressCircle.style.strokeDashoffset = circumference;
+
+    // Botones de control
+    const startBtn = document.getElementById("start-btn");
+    const pauseBtn = document.getElementById("pause-btn");
+    const stopBtn = document.getElementById("stop-btn");
+
+    // Estado del temporizador
+    let timerInterval = null;
+    let isPaused = false;
+    let currentSet = 1;
+    let stopped = false;
+
+    // Variables para la fase actual
+    let timeLeft = 0;
+    let totalTime = 0;
+    let currentPhase = "PREPARAR";
+
+    // Mostrar/ocultar la sección de temporizador
+    btnTemporizador.addEventListener("click", () => {
+      timerSection.classList.toggle("oculto");
+    });
+
+    // Formatea tiempo (segundos) a mm:ss
+    function formatTime(seconds) {
+      const m = Math.floor(seconds / 60);
+      const s = seconds % 60;
+      return String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
+    }
+
+    // Actualiza el display de tiempo y el arco de progreso
+    function updateDisplay() {
+      timerText.textContent = formatTime(timeLeft);
+      const offset = circumference - (timeLeft / totalTime) * circumference;
+      progressCircle.style.strokeDashoffset = offset;
+    }
+
+    // Inicia una fase (con color, nombre y duración)
+    function startPhase(phaseName, duration, color, callback) {
+      currentPhase = phaseName;
+      progressCircle.style.stroke = color;
+      totalTime = duration;
+      timeLeft = duration;
+      updateDisplay();
+
+      timerInterval = setInterval(() => {
+        if (!isPaused) {
+          timeLeft--;
+          updateDisplay();
+          if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            if (callback && !stopped) {
+              callback();
+            }
+          }
+        }
+      }, 1000);
+    }
+
+    // Secuencia: 1) Preparar 2) Para cada set: Entrenar + Descansar (excepto en el último)
+    function startSequence() {
+      stopped = false;
+      isPaused = false;
+      currentSet = 1;
+
+      // Toma los valores de inputs
+      const series = parseInt(seriesInput.value);
+      // repeticionesInput.value se muestra en pantalla, 
+      //   pero no se usa aquí en la lógica (puedes adaptarlo si lo requieres)
+      const tPrep = parseInt(tiempoPreparacionInput.value);
+      const tEntreno = parseInt(tiempoEntrenamientoInput.value);
+      const tDescanso = parseInt(tiempoDescansoInput.value);
+
+      // Fase 1: Preparación
+      startPhase("PREPARAR", tPrep, "#FFD700", () => {
+        // Ahora arrancan las series
+        runSet(series, tEntreno, tDescanso);
+      });
+    }
+
+    // Ejecuta una "serie": Entrenar -> Descansar -> siguiente set
+    function runSet(series, tEntreno, tDescanso) {
+      if (currentSet > series || stopped) {
+        // Terminamos
+        timerText.textContent = "00:00";
+        return;
+      }
+      // Fase Entrenar
+      startPhase(`ENTRENAR (Set ${currentSet})`, tEntreno, "#32CD32", () => {
+        // Si no es la última serie, Descansar
+        if (currentSet < series) {
+          startPhase(`DESCANSAR (Set ${currentSet})`, tDescanso, "#FF4500", () => {
+            currentSet++;
+            runSet(series, tEntreno, tDescanso);
+          });
+        } else {
+          // Si es la última serie, fin
+          timerText.textContent = "00:00";
+        }
+      });
+    }
+
+    // Botones de control
+    startBtn.addEventListener("click", () => {
+      // Si ya hay un intervalo corriendo, no hacemos nada
+      if (timerInterval) return;
+      stopTimer(); // Resetea todo antes de iniciar
+      startSequence();
+    });
+
+    pauseBtn.addEventListener("click", () => {
+      if (!timerInterval) return;
+      isPaused = !isPaused;
+      pauseBtn.textContent = isPaused ? "Reanudar" : "Pausar";
+    });
+
+    stopBtn.addEventListener("click", () => {
+      stopTimer();
+    });
+
+    // Detener todo y resetear
+    function stopTimer() {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      isPaused = false;
+      stopped = true;
+      pauseBtn.textContent = "Pausar";
+      // Regresar todo al estado inicial
+      currentPhase = "PREPARAR";
+      progressCircle.style.stroke = "#FFD700";
+      progressCircle.style.strokeDashoffset = circumference;
+      timerText.textContent = "00:00";
+    }
+  </script>
+</body>
+</html>
+
 </body>
 </html>

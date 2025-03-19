@@ -421,3 +421,83 @@ btnTerminar.addEventListener("click", () => {
   btnExportar.onclick = exportarDatosExcelJS;  // asigna correctamente el evento
 });
 
+document.addEventListener("DOMContentLoaded", () => {
+  // Botón que muestra/oculta el temporizador
+  const btnTemporizador = document.getElementById("btnTemporizador");
+  // Contenedor del temporizador
+  const timerSection = document.getElementById("timerSection");
+
+  // Al hacer clic en "Mostrar Temporizador", se alterna la visibilidad
+  btnTemporizador.addEventListener("click", () => {
+    timerSection.classList.toggle("oculto");
+  });
+
+  // Botón para iniciar el temporizador
+  const startTimerBtn = document.getElementById("startTimer");
+  const display = document.getElementById("display");
+
+  startTimerBtn.addEventListener("click", () => {
+    // Tomar los valores de los inputs
+    const series = parseInt(document.getElementById("series").value);
+    const repeticiones = parseInt(document.getElementById("repeticiones").value);
+    const tiempoEntrenamiento = parseInt(document.getElementById("tiempoEntrenamiento").value);
+    const tiempoDescanso = parseInt(document.getElementById("tiempoDescanso").value);
+    const tiempoPreparacion = parseInt(document.getElementById("tiempoPreparacion").value);
+
+    let currentSet = 1;
+    let intervalId;
+
+    // Actualiza el display con formato mm:ss
+    function updateDisplay(phase, time) {
+      const minutes = Math.floor(time / 60);
+      const seconds = time % 60;
+      display.textContent = `${phase} - ${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+
+    // Temporizador regresivo
+    function startTimer(duration, phase, callback) {
+      let timeRemaining = duration;
+      updateDisplay(phase, timeRemaining);
+
+      intervalId = setInterval(() => {
+        timeRemaining--;
+        updateDisplay(phase, timeRemaining);
+        if (timeRemaining <= 0) {
+          clearInterval(intervalId);
+          if (callback) callback();
+        }
+      }, 1000);
+    }
+
+    // Secuencia del temporizador
+    function startSequence() {
+      // Primero, tiempo de preparación
+      startTimer(tiempoPreparacion, "Preparación", () => {
+        startSet();
+      });
+    }
+
+    function startSet() {
+      if (currentSet > series) {
+        display.textContent = "¡Fin del temporizador!";
+        return;
+      }
+
+      // Entrenamiento
+      startTimer(tiempoEntrenamiento, `Entrenamiento (Set ${currentSet})`, () => {
+        // Descanso (si no es el último set)
+        if (currentSet < series) {
+          startTimer(tiempoDescanso, `Descanso (Set ${currentSet})`, () => {
+            currentSet++;
+            startSet();
+          });
+        } else {
+          display.textContent = "¡Fin del temporizador!";
+        }
+      });
+    }
+
+    // Inicia la secuencia
+    startSequence();
+  });
+});
