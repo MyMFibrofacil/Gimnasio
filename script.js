@@ -421,3 +421,122 @@ btnTerminar.addEventListener("click", () => {
   btnExportar.onclick = exportarDatosExcelJS;  // asigna correctamente el evento
 });
 
+document.addEventListener("DOMContentLoaded", function() {
+  const btnTemporizador = document.getElementById("btnTemporizador");
+  if (!btnTemporizador) {
+    console.error("El botón con id 'btnTemporizador' no se encontró.");
+    return;
+  }
+  btnTemporizador.addEventListener("click", () => {
+    console.log("Botón temporizador clickeado");
+    const timerWindow = window.open("", "_blank", "width=400,height=500");
+    if (!timerWindow) {
+      alert("Por favor, permite las ventanas emergentes en tu navegador.");
+      return;
+    }
+    timerWindow.document.write(`<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Temporizador</title>
+  <style>
+    body { 
+      background-color: #000; 
+      color: #fff; 
+      font-family: Arial, sans-serif; 
+      text-align: center; 
+      padding: 20px; 
+    }
+    input, button { 
+      padding: 10px; 
+      margin: 5px; 
+      border: none; 
+      border-radius: 4px; 
+    }
+    .boton-gris { 
+      background-color: #444; 
+      color: #fff; 
+    }
+    #display { font-size: 2em; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>Temporizador</h1>
+  <div>
+    <label for="series">Series:</label>
+    <input type="number" id="series" min="1" value="1"><br>
+    <label for="repeticiones">Repeticiones:</label>
+    <input type="number" id="repeticiones" min="1" value="1"><br>
+    <label for="tiempoEntrenamiento">Tiempo de Entrenamiento (seg):</label>
+    <input type="number" id="tiempoEntrenamiento" min="1" value="30"><br>
+    <label for="tiempoDescanso">Tiempo de Descanso (seg):</label>
+    <input type="number" id="tiempoDescanso" min="1" value="30"><br>
+    <label for="tiempoPreparacion">Tiempo de Preparación (seg):</label>
+    <input type="number" id="tiempoPreparacion" min="1" value="10"><br>
+  </div>
+  <button id="startTimer" class="boton-gris">Iniciar Temporizador</button>
+  <div id="display">00:00</div>
+  <script>
+    document.getElementById("startTimer").addEventListener("click", function() {
+      const series = parseInt(document.getElementById("series").value);
+      const repeticiones = parseInt(document.getElementById("repeticiones").value);
+      const tiempoEntrenamiento = parseInt(document.getElementById("tiempoEntrenamiento").value);
+      const tiempoDescanso = parseInt(document.getElementById("tiempoDescanso").value);
+      const tiempoPreparacion = parseInt(document.getElementById("tiempoPreparacion").value);
+      
+      let currentSet = 1;
+      let interval;
+      
+      function updateDisplay(phase, time) {
+        const minutes = Math.floor(time / 60);
+        const seconds = time % 60;
+        document.getElementById("display").textContent = phase + " - " +
+          String(minutes).padStart(2, '0') + ":" + String(seconds).padStart(2, '0');
+      }
+      
+      function startTimer(duration, phase, callback) {
+        let timeRemaining = duration;
+        updateDisplay(phase, timeRemaining);
+        interval = setInterval(function() {
+          timeRemaining--;
+          updateDisplay(phase, timeRemaining);
+          if (timeRemaining <= 0) {
+            clearInterval(interval);
+            if (callback) callback();
+          }
+        }, 1000);
+      }
+      
+      function startSequence() {
+        startTimer(tiempoPreparacion, "Preparación", function() {
+          startSet();
+        });
+      }
+      
+      function startSet() {
+        if (currentSet > series) {
+          document.getElementById("display").textContent = "¡Fin del temporizador!";
+          return;
+        }
+        startTimer(tiempoEntrenamiento, "Entrenamiento (Set " + currentSet + ")", function() {
+          if (currentSet < series) {
+            startTimer(tiempoDescanso, "Descanso (Set " + currentSet + ")", function() {
+              currentSet++;
+              startSet();
+            });
+          } else {
+            document.getElementById("display").textContent = "¡Fin del temporizador!";
+          }
+        });
+      }
+      
+      startSequence();
+    });
+  <\/script>
+</body>
+</html>`);
+    timerWindow.document.close();
+  });
+});
+
+
